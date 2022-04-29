@@ -37,14 +37,14 @@ LABELS = open(labelsPath).read().strip().split("\n")
 
 #weightsPath = "yolo-coco/yolov3.weights"
 weightsPath = "/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/model/yolov4-tiny.weights"
-configPath = "C:/darknet/darknet-master/build/darknet/x64/cfg/yolov4-tiny.cfg"
+configPath = "/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/model/yolov4-tiny.cfg"
 
 
-labelsPath2 = "model/obj.names"
+labelsPath2 = "/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/model/obj.names"
 LABELS2 = open(labelsPath2).read().strip().split("\n")
 
-weightsPath2 = "model/yolov4-tiny-3l-obj_best.weights"
-configPath2 = "model/yolov4-tiny-3l-obj.cfg"
+weightsPath2 = "/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/model/yolov4-tiny-3l-obj_best.weights"
+configPath2 = "/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/model/yolov4-tiny-3l-obj.cfg"
 
 
 net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
