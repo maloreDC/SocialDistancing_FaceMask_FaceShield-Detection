@@ -30,13 +30,13 @@ MIN_DISTANCE = 90
 # file_url = 'https://pjreddie.com/media/files/yolov3.weights'
 # file_name = wget.download(file_url)
 
-labelsPath = "model/coco.names"
+labelsPath = "/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/model/coco.names"
 LABELS = open(labelsPath).read().strip().split("\n")
 
 
 
 #weightsPath = "yolo-coco/yolov3.weights"
-weightsPath = "model/yolov4-tiny.weights"
+weightsPath = "/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/model/yolov4-tiny.weights"
 configPath = "C:/darknet/darknet-master/build/darknet/x64/cfg/yolov4-tiny.cfg"
 
 
