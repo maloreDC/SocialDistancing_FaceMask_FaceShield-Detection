@@ -72,9 +72,9 @@ if st.button('Start'):
     st.info("[INFO] loading YOLO from disk...")
     st.info("[INFO] accessing video stream...")
     if option == "Demo1":
-        vs = cv2.VideoCapture("test3.mp4")
+        vs = cv2.VideoCapture("/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/test3.mp4")
     elif option == "Demo2":
-        vs = cv2.VideoCapture("rizalpark.mp4")
+        vs = cv2.VideoCapture("/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/rizalpark.mp4")
     else:
         vs = cv2.VideoCapture(0)
     writer = None
