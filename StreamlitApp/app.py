@@ -7,7 +7,6 @@ import cv2
 import os
 import datetime
 import wget
-import chime
 import time
 
 
