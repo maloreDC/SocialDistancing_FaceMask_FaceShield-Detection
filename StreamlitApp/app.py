@@ -76,7 +76,7 @@ if st.button('Start'):
     elif option == "Demo2":
         vs = cv2.VideoCapture("/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/rizalpark.mp4")
     else:
-        vs = cv2.VideoCapture(-1)
+        vs = cv2.VideoCapture(1)
     writer = None
 
     image_placeholder = st.empty()
