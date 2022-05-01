@@ -9,6 +9,23 @@ import datetime
 import wget
 import time
 
+import asyncio
+from aiortc.contrib.media import MediaPlayer
+from streamlit_webrtc import (
+    AudioProcessorBase,
+    ClientSettings,
+    VideoProcessorBase,
+    WebRtcMode,
+    webrtc_streamer,
+)
+
+WEBRTC_CLIENT_SETTINGS = ClientSettings(
+    rtc_configuration={"iceServers": [
+        {"urls": ["stun:stun.l.google.com:19302"]}]},
+    media_stream_constraints={
+        "video": True,
+    },
+)
 
 st.title("Social Distancing, Face Mask, Face Shield Detector")
 st.subheader('A Social Distancing, Face Mask, Face Shield Monitoring System Using Yolov4 Algorithm')
