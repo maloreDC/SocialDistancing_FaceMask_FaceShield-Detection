@@ -9,23 +9,6 @@ import datetime
 import wget
 import time
 
-import asyncio
-
-from streamlit_webrtc import (
-    AudioProcessorBase,
-    ClientSettings,
-    VideoProcessorBase,
-    WebRtcMode,
-    webrtc_streamer,
-)
-
-WEBRTC_CLIENT_SETTINGS = ClientSettings(
-    rtc_configuration={"iceServers": [
-        {"urls": ["stun:stun.l.google.com:19302"]}]},
-    media_stream_constraints={
-        "video": True,
-    },
-)
 
 st.title("Social Distancing, Face Mask, Face Shield Detector")
 st.subheader('A Social Distancing, Face Mask, Face Shield Monitoring System Using Yolov4 Algorithm')
@@ -93,14 +76,7 @@ if st.button('Start'):
     elif option == "Demo2":
         vs = cv2.VideoCapture("/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/rizalpark.mp4")
     else:
-        # vs = cv2.VideoCapture(1)
-        vs = webrtc_streamer(
-            key="object-detection",
-            mode=WebRtcMode.SENDRECV,
-            client_settings=WEBRTC_CLIENT_SETTINGS,
-            video_processor_factory=Video,
-            async_processing=True,
-        )
+        vs = cv2.VideoCapture(0)
     writer = None
 
     image_placeholder = st.empty()
