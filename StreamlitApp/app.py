@@ -10,7 +10,7 @@ import wget
 import time
 
 import asyncio
-from aiortc.contrib.media import MediaPlayer
+
 from streamlit_webrtc import (
     AudioProcessorBase,
     ClientSettings,
