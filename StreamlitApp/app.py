@@ -76,7 +76,14 @@ if st.button('Start'):
     elif option == "Demo2":
         vs = cv2.VideoCapture("/app/socialdistancing_facemask_faceshield-detection/StreamlitApp/rizalpark.mp4")
     else:
-        vs = cv2.VideoCapture(1)
+        # vs = cv2.VideoCapture(1)
+        vs = webrtc_streamer(
+            key="object-detection",
+            mode=WebRtcMode.SENDRECV,
+            client_settings=WEBRTC_CLIENT_SETTINGS,
+            video_processor_factory=Video,
+            async_processing=True,
+        )
     writer = None
 
     image_placeholder = st.empty()
