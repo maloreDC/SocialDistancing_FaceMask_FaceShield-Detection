@@ -148,7 +148,7 @@ if st.button('Start'):
         font = cv2.FONT_HERSHEY_SIMPLEX
         datet = str(datetime.datetime.now())
         text1 = "FPS: {}".format(str(fps)[0:1])
-        frame = cv2.putText(frame, text1, (0, 35), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
+        frame = cv2.putText(frame, datet, (0, 35), font, 1, (0, 0, 255), 2, cv2.LINE_AA)
         text = "Social Distancing Violations: {}".format(len(violate))
         cv2.putText(frame, text, (10, frame.shape[0] - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.85, (0, 0, 255), 3)
 
