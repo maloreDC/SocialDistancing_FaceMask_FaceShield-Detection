@@ -22,15 +22,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pydub
 import streamlit as st
-from aiortc.contrib.media import MediaPlayer
 
 import time
 import pandas as pd
 import math
 from itertools import combinations
 
-#change = ClientSettings - RTCConfiguration
 
+from aiortc.contrib.media import MediaPlayer
+#change = ClientSettings > RTCConfiguration
 from streamlit_webrtc import (
     AudioProcessorBase,
     RTCConfiguration,
@@ -61,8 +61,8 @@ RTC_CONFIGURATION = RTCConfiguration(
 
 def main():
 
-    st.title("Lite Real time Object Detection WebApp")
-    st.subheader("Using YOLOv4 tiny")
+    st.title("Real time Social Distancing, Face Mask, and Face Shield Detector.")
+    st.subheader("Using YOLOv4 tiny and tiny 3l")
 
     with st.spinner('Wait for the Weights and Configuration files to load'):
         time.sleep(1)
@@ -136,7 +136,6 @@ model_weight2 = "models/yolov4-tiny-3l-obj_best.weights"
 #model_config_file = "models\\yolov4-tiny.cfg"
 #model_weight = "models\\yolov4-tiny.weights"
 
-
 # darknet files
 net = cv2.dnn.readNetFromDarknet(model_config_file, model_weight)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
@@ -157,7 +156,7 @@ model2.setInputParams(size=(608,608), scale=1/255, swapRB=True)
 def is_close(p1, p2):
     """
     #================================================================
-    # 1. Purpose : Calculate Euclidean Distance between two points
+    Calculate Euclidean Distance between two points
     #================================================================    
     :param:
     p1, p2 = two points for calculating Euclidean Distance
@@ -170,9 +169,6 @@ def is_close(p1, p2):
 
 
 def convertBack(x, y, w, h): 
-    #================================================================
-    # 2.Purpose : Converts center coordinates to rectangle coordinates
-    #================================================================  
     """
     :param:
     x, y = midpoint of bbox
@@ -226,7 +222,7 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
                     cv2.circle(image, centerCoord, 5, (255, 0, 0), 1) 
                     x, y, w, h= box
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
-                    centroid_dict[objectId] = (int(x), int(y), xmin, ymin, xmax, ymax,centerCoord) 
+                    centroid_dict[objectId] = (int(x), int(y), xmin, ymin, xmax, ymax,centerCoord)
                     objectId += 1
 
             for (id1, p1), (id2, p2) in combinations(centroid_dict.items(), 2): 
