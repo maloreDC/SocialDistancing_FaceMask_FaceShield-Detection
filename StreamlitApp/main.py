@@ -44,7 +44,7 @@ HERE = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
-st.set_page_config(page_title="YoloV4 App", page_icon=":nazar_amulet:")
+st.set_page_config(page_title="EYE SEE YOU", page_icon=":nazar_amulet:")
 
 RTC_CONFIGURATION = RTCConfiguration(
     {"iceServers": [{"urls": ["stun:stun4.l.google.com:19302"]}]},
@@ -61,7 +61,7 @@ RTC_CONFIGURATION = RTCConfiguration(
 
 def main():
 
-    st.title("Real time Social Distancing, Face Mask, and Face Shield Detector.")
+    st.title("EYE SEE YOU: Real time Social Distancing, Face Mask, and Face Shield Detector.")
     st.subheader("Using YOLOv4 tiny and tiny 3l")
 
     with st.spinner('Wait for the Weights and Configuration files to load'):
@@ -101,7 +101,7 @@ NMS_threshold = 0.25
 Conf_threshold2 = 0.30
 NMS_threshold2 = 0.30
 
-MIN_DISTANCE = 90
+MIN_DISTANCE = 100
 
 # Colours
 COLORS = [(0, 255, 0), (0, 0, 255), (255, 0, 0),
@@ -206,7 +206,7 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
                 image, Conf_threshold, NMS_threshold)
 
             if checker.has_been_a_second():
-                if has_violations(classes2):
+                if has_violations(classes2) or len(red_line_list) > 0:
                     play_alarm()
             
             centroid_dict = dict() 
@@ -235,7 +235,7 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
                     if id2 not in red_zone_list:
                         red_zone_list.append(id2)	
                         red_line_list.append(p2[6])
-
+                
             for idx, box in centroid_dict.items():
                 if idx in red_zone_list:  
                     cv2.rectangle(image, (box[2], box[3]), (box[4], box[5]), (0, 0, 255), 2)
