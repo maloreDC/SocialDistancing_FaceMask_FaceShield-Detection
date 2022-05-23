@@ -205,16 +205,16 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
             classes2, scores2, boxes2 = model2.detect(
                 image, Conf_threshold, NMS_threshold)
 
-            if checker.has_been_a_second():
-                if has_violations(classes2) or len(red_line_list) > 0:
-                    play_alarm()
-            
             centroid_dict = dict() 
             objectId = 0
             red_zone_list = []
             red_line_list = []
             no_face_mask =[]
             no_face_shield = []
+
+            if checker.has_been_a_second():
+                if has_violations(classes2) or len(red_line_list) > 0:
+                    play_alarm()
 
             for i , (classid, score, box) in enumerate (zip(classes, scores, boxes)):
                 if classid == 0:
