@@ -212,10 +212,6 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
             no_face_mask =[]
             no_face_shield = []
 
-            if checker.has_been_a_second():
-                if has_violations(classes2) or len(red_line_list) > 0:
-                    play_alarm()
-
             for i , (classid, score, box) in enumerate (zip(classes, scores, boxes)):
                 if classid == 0:
                     centerCoord = (int(box[0]+(box[2]/2)), int(box[1]+(box[3]/2)))
@@ -268,6 +264,9 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
                 self.fmViolators = len(no_face_mask)
                 self.fsViolators = len(no_face_shield)
 
+            if checker.has_been_a_second():
+                if has_violations(classes2) or len(red_line_list) > 0:
+                    play_alarm()
 
             return av.VideoFrame.from_ndarray(image, format="bgr24")
 
