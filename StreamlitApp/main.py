@@ -199,74 +199,76 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
         def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
             image = frame.to_ndarray(format="bgr24")
 
-            classes, scores, boxes = model.detect(
-                image, Conf_threshold2, NMS_threshold2)
+            image = try_warp(image)
 
-            classes2, scores2, boxes2 = model2.detect(
-                image, Conf_threshold, NMS_threshold)
+            # classes, scores, boxes = model.detect(
+            #     image, Conf_threshold2, NMS_threshold2)
 
-            centroid_dict = dict() 
-            objectId = 0
-            red_zone_list = []
-            red_line_list = []
-            no_face_mask =[]
-            no_face_shield = []
+            # classes2, scores2, boxes2 = model2.detect(
+            #     image, Conf_threshold, NMS_threshold)
 
-            for i , (classid, score, box) in enumerate (zip(classes, scores, boxes)):
-                if classid == 0:
-                    centerCoord = (int(box[0]+(box[2]/2)), int(box[1]+(box[3]/2)))
-                    cv2.circle(image, centerCoord, 5, (255, 0, 0), 1) 
-                    x, y, w, h= box
-                    xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
-                    centroid_dict[objectId] = (int(x), int(y), xmin, ymin, xmax, ymax,centerCoord)
-                    objectId += 1
+            # centroid_dict = dict() 
+            # objectId = 0
+            # red_zone_list = []
+            # red_line_list = []
+            # no_face_mask =[]
+            # no_face_shield = []
 
-            for (id1, p1), (id2, p2) in combinations(centroid_dict.items(), 2): 
-                dx, dy = p1[0] - p2[0], p1[1] - p2[1]   	
-                distance = is_close(dx, dy) 			
-                if distance < MIN_DISTANCE:						
-                    if id1 not in red_zone_list:
-                        red_zone_list.append(id1)       
-                        red_line_list.append(p1[6]) 
-                    if id2 not in red_zone_list:
-                        red_zone_list.append(id2)	
-                        red_line_list.append(p2[6])
+            # for i , (classid, score, box) in enumerate (zip(classes, scores, boxes)):
+            #     if classid == 0:
+            #         centerCoord = (int(box[0]+(box[2]/2)), int(box[1]+(box[3]/2)))
+            #         cv2.circle(image, centerCoord, 5, (255, 0, 0), 1) 
+            #         x, y, w, h= box
+            #         xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
+            #         centroid_dict[objectId] = (int(x), int(y), xmin, ymin, xmax, ymax,centerCoord)
+            #         objectId += 1
+
+            # for (id1, p1), (id2, p2) in combinations(centroid_dict.items(), 2): 
+            #     dx, dy = p1[0] - p2[0], p1[1] - p2[1]   	
+            #     distance = is_close(dx, dy) 			
+            #     if distance < MIN_DISTANCE:						
+            #         if id1 not in red_zone_list:
+            #             red_zone_list.append(id1)       
+            #             red_line_list.append(p1[6]) 
+            #         if id2 not in red_zone_list:
+            #             red_zone_list.append(id2)	
+            #             red_line_list.append(p2[6])
                 
-            for idx, box in centroid_dict.items():
-                if idx in red_zone_list:  
-                    cv2.rectangle(image, (box[2], box[3]), (box[4], box[5]), (0, 0, 255), 2)
-                else:
-                    cv2.rectangle(image, (box[2], box[3]), (box[4], box[5]), (0, 255, 0), 2)
-                self.scViolators = len(red_zone_list)
+            # for idx, box in centroid_dict.items():
+            #     if idx in red_zone_list:  
+            #         cv2.rectangle(image, (box[2], box[3]), (box[4], box[5]), (0, 0, 255), 2)
+            #     else:
+            #         cv2.rectangle(image, (box[2], box[3]), (box[4], box[5]), (0, 255, 0), 2)
+            #     self.scViolators = len(red_zone_list)
                 
-            for check in range(0, len(red_line_list)-1):					
-                start_point = red_line_list[check] 
-                end_point = red_line_list[check+1]
-                check_line_x = abs(end_point[0] - start_point[0])   		
-                check_line_y = abs(end_point[1] - start_point[1])	
-                if (check_line_x < MIN_DISTANCE) and (check_line_y < 25):			
-                    cv2.line(image, start_point, end_point, (255, 0, 0), 2) 
+            # for check in range(0, len(red_line_list)-1):					
+            #     start_point = red_line_list[check] 
+            #     end_point = red_line_list[check+1]
+            #     check_line_x = abs(end_point[0] - start_point[0])   		
+            #     check_line_y = abs(end_point[1] - start_point[1])	
+            #     if (check_line_x < MIN_DISTANCE) and (check_line_y < 25):			
+            #         cv2.line(image, start_point, end_point, (255, 0, 0), 2) 
 
-            for (classid, score, box) in zip(classes2, scores2, boxes2):
-                if classid != 4:
+            # for (classid, score, box) in zip(classes2, scores2, boxes2):
+            #     if classid != 4:
                     
-                    color = COLORS[int(classid) % len(COLORS)]
+            #         color = COLORS[int(classid) % len(COLORS)]
 
-                    label = "%s : %f" % (class_name2[classid[0]], score)
+            #         label = "%s : %f" % (class_name2[classid[0]], score)
 
-                    cv2.rectangle(image, box, color, 1)
-                    cv2.putText(image, label, (box[0], box[1]-10),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.5, color, 1)
-                    if classid == 3:
-                        no_face_mask.append(score)
-                    if classid == 1:
-                        no_face_shield.append(score)
-                self.fmViolators = len(no_face_mask)
-                self.fsViolators = len(no_face_shield)
+            #         cv2.rectangle(image, box, color, 1)
+            #         cv2.putText(image, label, (box[0], box[1]-10),
+            #                     cv2.FONT_HERSHEY_COMPLEX, 0.5, color, 1)
+            #         if classid == 3:
+            #             no_face_mask.append(score)
+            #         if classid == 1:
+            #             no_face_shield.append(score)
+            #     self.fmViolators = len(no_face_mask)
+            #     self.fsViolators = len(no_face_shield)
 
-            if checker.has_been_a_second():
-                if has_violations(classes2) or len(red_line_list) > 0:
-                    play_alarm()
+            # if checker.has_been_a_second():
+            #     if has_violations(classes2) or len(red_line_list) > 0:
+            #         play_alarm()
 
             return av.VideoFrame.from_ndarray(image, format="bgr24")
 
@@ -294,6 +296,37 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
             kpi1_text.write(str(webrtc_ctx.video_processor.scViolators))
             kpi2_text.write(str(webrtc_ctx.video_processor.fmViolators))
             kpi3_text.write(str(webrtc_ctx.video_processor.fsViolators))
+
+def try_warp(image):
+    # print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    # cv2.imshow("Frame", image)
+    # print(type(image))
+    # print(image.shape)
+    # print(image.size)
+    x = image.shape[1]
+    y = image.shape[0]
+
+    p1 = (round(x*0.25), round(y*0.25))
+    p2 = (round(x*0.75), round(y*0.25))
+    p3 = (round(x*0.05), round(y*0.95))
+    p4 = (round(x*0.95), round(y*0.95))
+    
+    cv2.circle(image, p1, 5, (0, 0, 255), -1)
+    cv2.circle(image, p2, 5, (0, 0, 255), -1)
+    cv2.circle(image, p3, 5, (0, 0, 255), -1)
+    cv2.circle(image, p4, 5, (0, 0, 255), -1)
+
+    points = np.float32([list(p1), list(p2), list(p3), list(p4)])
+
+    new_x = round(x*0.625)
+    new_y = round(y*1.25)
+
+    new_prsctv = np.float32([[0, 0], [new_x, 0], [0, new_y], [new_x, new_y]])
+
+    matrix = cv2.getPerspectiveTransform(points, new_prsctv)
+
+    return cv2.warpPerspective(image, matrix, (new_x, new_y))
+
 
 if __name__ == "__main__":
     import os
