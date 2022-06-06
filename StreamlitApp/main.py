@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pydub
 import streamlit as st
-
 import time
 import pandas as pd
 import math
@@ -49,15 +48,6 @@ st.set_page_config(page_title="EYE SEE YOU", page_icon=":nazar_amulet:")
 RTC_CONFIGURATION = RTCConfiguration(
     {"iceServers": [{"urls": ["stun:stun4.l.google.com:19302"]}]},
 )
-
-# WEBRTC_CLIENT_SETTINGS = ClientSettings(
-#     rtc_configuration={"iceServers": [
-#         {"urls": ["stun:stun.l.google.com:19302"]}]},
-#     media_stream_constraints={
-#         "video": True,
-#     },
-# )
-
 
 def main():
 
@@ -95,13 +85,14 @@ def main():
 
 
 # Threshold Values
-Conf_threshold = 0.25
-NMS_threshold = 0.25
-
-Conf_threshold2 = 0.30
-NMS_threshold2 = 0.30
-
+Conf_threshold = 0.01
+NMS_threshold = 0.01
+Conf_threshold2 = 0.35
+NMS_threshold2 = 0.35
+Conf_threshold3 = 0.45
+NMS_threshold3 = 0.45
 MIN_DISTANCE = 100
+
 
 # Colours
 COLORS = [(0, 255, 0), (0, 0, 255), (255, 0, 0),
@@ -113,6 +104,7 @@ class_name = []
 #Coco - Server
 COCO = "models/coco.names"
 OBJ = "models/obj.names"
+FM = "models/fm.names"
 
 #Coco - Local
 #COCO = "models\\coco.names"
@@ -125,12 +117,18 @@ with open(COCO, 'rt') as f:
 with open(OBJ, 'rt') as f:
     class_name2 = f.read().rstrip('\n').split('\n')
 
+with open(FM, 'rt') as f:
+    class_name3 = f.read().rstrip('\n').split('\n')
+
 # configration and weights file location - Server
 model_config_file = "models/yolov4-tiny.cfg"
 model_weight = "models/yolov4-tiny.weights"
 
 model_config_file2 = "models/yolov4-tiny-3l-obj.cfg"
 model_weight2 = "models/yolov4-tiny-3l-obj_best.weights"
+
+model_config_file3 = "models/yolov4-tiny-masks.cfg"
+model_weight3 = "models/yolov4-tiny-obj_last.weights"
 
 # configration and weights file location - Local
 #model_config_file = "models\\yolov4-tiny.cfg"
@@ -145,12 +143,19 @@ net2 = cv2.dnn.readNetFromDarknet(model_config_file2, model_weight2)
 net2.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
 net2.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
+net3 = cv2.dnn.readNetFromDarknet(model_config_file3, model_weight3)
+net3.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+net3.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+
 # Load Model
 model = cv2.dnn_DetectionModel(net)
 model.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
 
 model2 = cv2.dnn_DetectionModel(net2)
 model2.setInputParams(size=(608,608), scale=1/255, swapRB=True)
+
+model3 = cv2.dnn_DetectionModel(net3)
+model3.setInputParams(size=(608,608), scale=1/255, swapRB=True)
 
 
 def is_close(p1, p2):
@@ -166,7 +171,6 @@ def is_close(p1, p2):
     dst = math.sqrt(p1**2 + p2**2)
     #=================================================================#
     return dst 
-
 
 def convertBack(x, y, w, h): 
     """
@@ -185,6 +189,53 @@ def convertBack(x, y, w, h):
     return xmin, ymin, xmax, ymax
 
 
+def socialDistancinator(w,p1,p2):
+    dst = math.sqrt(((w-0)**2) + ((p2-p1)**2))
+    return dst
+
+
+#Start - For Calibration
+
+SENSOR_WIDTH = 7.4 #mm
+SENSOR_HEIGHT = 5.6 #mm
+KNOWN_HEIGHT = 1574.8 #mm
+FOCAL_LENGTH =  4.00 #mm
+
+
+centroid_dict2 = dict()
+objectId2 = 0
+refChecker = 0.0
+
+refImage = cv2.imread('ReferenceImages/reference.jpg')
+# print(refImage)
+
+hshape , wshape , cshape = refImage.shape
+print(f"w ref: {wshape}")
+print(f"h ref: {hshape}")
+
+pixel_size = ( (SENSOR_WIDTH / wshape) + (SENSOR_HEIGHT / hshape) ) / 2
+
+classes3, scores3, boxes3 = model.detect(refImage, Conf_threshold2, NMS_threshold2)
+
+for i , (classid, score, box) in enumerate (zip(classes3, scores3, boxes3)):
+    if classid == 0:
+        x, y, w, h= box
+        ht_of_object_on_sensor = h * pixel_size  #(mm) 
+        d = (KNOWN_HEIGHT * FOCAL_LENGTH) / ht_of_object_on_sensor #(mm)
+        print(f"distance from camera ref : {d}")
+        xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
+        centroid_dict2[objectId2] = (int(x), int(y), xmin, ymin, xmax, ymax,d)
+        objectId2 += 1
+
+for (id1, p1), (id2, p2) in combinations(centroid_dict2.items(), 2): 
+    social_distancing_width = abs(p1[0] - p2[0]) * pixel_size #(mm)
+    actual_w = (SENSOR_WIDTH * social_distancing_width) / FOCAL_LENGTH  	
+    refChecker =  socialDistancinator(actual_w,p1[6],p2[6]) 
+    print(f"distance between object ref : {refChecker}")	
+
+#End - For Calibration
+
+
 def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
 
     checker = TimeForSoundChecker()
@@ -199,11 +250,22 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
         def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
             image = frame.to_ndarray(format="bgr24")
 
+            print(image)
+            h, w, c = image.shape
+
+            print(f"h : {h}")
+            print(f"w : {w}")
+            
+            pixel_size = ( (SENSOR_WIDTH / wshape ) + (SENSOR_HEIGHT/ hshape) ) / 2
+
             classes, scores, boxes = model.detect(
                 image, Conf_threshold2, NMS_threshold2)
 
             classes2, scores2, boxes2 = model2.detect(
                 image, Conf_threshold, NMS_threshold)
+
+            classes4, scores4, boxes4 = model3.detect(
+                image, Conf_threshold3, NMS_threshold3)
 
             centroid_dict = dict() 
             objectId = 0
@@ -211,20 +273,31 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
             red_line_list = []
             no_face_mask =[]
             no_face_shield = []
-
+            
             for i , (classid, score, box) in enumerate (zip(classes, scores, boxes)):
                 if classid == 0:
                     centerCoord = (int(box[0]+(box[2]/2)), int(box[1]+(box[3]/2)))
                     cv2.circle(image, centerCoord, 5, (255, 0, 0), 1) 
                     x, y, w, h= box
+                    ht_of_object_on_sensor = h * pixel_size  #(mm) 
+                    d = (KNOWN_HEIGHT * FOCAL_LENGTH) / ht_of_object_on_sensor
+                    print(f"distance from camera live : {d}")
+
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
-                    centroid_dict[objectId] = (int(x), int(y), xmin, ymin, xmax, ymax,centerCoord)
+                    centroid_dict[objectId] = (int(x), int(y), xmin, ymin, xmax, ymax,centerCoord,d)
                     objectId += 1
 
             for (id1, p1), (id2, p2) in combinations(centroid_dict.items(), 2): 
-                dx, dy = p1[0] - p2[0], p1[1] - p2[1]   	
-                distance = is_close(dx, dy) 			
-                if distance < MIN_DISTANCE:						
+
+                social_distancing_width = abs(p1[0] - p2[0]) * pixel_size #(mm)
+                actual_w = (SENSOR_WIDTH * social_distancing_width) / FOCAL_LENGTH 
+
+                dx, dy = p1[1] - p2[0], p1[1] - p2[0]   	
+                distance = is_close(dx, dy)
+                disChecker =  socialDistancinator(actual_w,p1[7],p2[7]) 
+                print(f"distance between object live : {disChecker}")
+                print(f"ref : {refChecker}")	
+                if disChecker < refChecker:						
                     if id1 not in red_zone_list:
                         red_zone_list.append(id1)       
                         red_line_list.append(p1[6]) 
@@ -244,11 +317,11 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
                 end_point = red_line_list[check+1]
                 check_line_x = abs(end_point[0] - start_point[0])   		
                 check_line_y = abs(end_point[1] - start_point[1])	
-                if (check_line_x < MIN_DISTANCE) and (check_line_y < 25):			
+                if (check_line_x < refChecker):			
                     cv2.line(image, start_point, end_point, (255, 0, 0), 2) 
 
             for (classid, score, box) in zip(classes2, scores2, boxes2):
-                if classid != 4:
+                if classid < 2:
                     
                     color = COLORS[int(classid) % len(COLORS)]
 
@@ -257,26 +330,31 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
                     cv2.rectangle(image, box, color, 1)
                     cv2.putText(image, label, (box[0], box[1]-10),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.5, color, 1)
-                    if classid == 3:
-                        no_face_mask.append(score)
                     if classid == 1:
                         no_face_shield.append(score)
-                self.fmViolators = len(no_face_mask)
+
                 self.fsViolators = len(no_face_shield)
 
+            for (classid, score, box) in zip(classes4, scores4, boxes4):
+                    
+                    color = COLORS[int(classid) % len(COLORS)]
+
+                    label = "%s : %f" % (class_name3[classid[0]], score)
+
+                    cv2.rectangle(image, box, color, 1)
+                    cv2.putText(image, label, (box[0], box[1]-10),
+                                cv2.FONT_HERSHEY_COMPLEX, 0.5, color, 1)
+                    if classid == 2 or classid == 1:
+                        no_face_mask.append(score)
+                    self.fmViolators = len(no_face_mask)
+
             if checker.has_been_a_second():
-                if has_violations(classes2) or len(red_line_list) > 0:
+                if has_violations(classes2) or len(red_zone_list) > 0:
                     play_alarm()
 
-            return av.VideoFrame.from_ndarray(image, format="bgr24")
+            
 
-    # webrtc_ctx = webrtc_streamer(
-    #     key="object-detection",
-    #     mode=WebRtcMode.SENDRECV,
-    #     client_settings=WEBRTC_CLIENT_SETTINGS,
-    #     video_processor_factory=Video,
-    #     async_processing=True,
-    # )
+            return av.VideoFrame.from_ndarray(image, format="bgr24")
 
     webrtc_ctx = webrtc_streamer(
         key="object-detection",
@@ -294,6 +372,7 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
             kpi1_text.write(str(webrtc_ctx.video_processor.scViolators))
             kpi2_text.write(str(webrtc_ctx.video_processor.fmViolators))
             kpi3_text.write(str(webrtc_ctx.video_processor.fsViolators))
+
 
 if __name__ == "__main__":
     import os
