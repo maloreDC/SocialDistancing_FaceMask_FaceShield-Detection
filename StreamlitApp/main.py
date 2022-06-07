@@ -222,7 +222,7 @@ for i , (classid, score, box) in enumerate (zip(classes3, scores3, boxes3)):
         x, y, w, h= box
         ht_of_object_on_sensor = h * pixel_size  #(mm) 
         d = (KNOWN_HEIGHT * FOCAL_LENGTH) / ht_of_object_on_sensor #(mm)
-        print(f"distance from camera ref : {d}")
+        # print(f"distance from camera ref : {d}")
         xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
         centroid_dict2[objectId2] = (int(x), int(y), xmin, ymin, xmax, ymax,d)
         objectId2 += 1
@@ -231,7 +231,7 @@ for (id1, p1), (id2, p2) in combinations(centroid_dict2.items(), 2):
     social_distancing_width = abs(p1[0] - p2[0]) * pixel_size #(mm)
     actual_w = (SENSOR_WIDTH * social_distancing_width) / FOCAL_LENGTH  	
     refChecker =  socialDistancinator(actual_w,p1[6],p2[6]) 
-    print(f"distance between object ref : {refChecker}")	
+    # print(f"distance between object ref : {refChecker}")	
 
 #End - For Calibration
 
@@ -281,7 +281,7 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
                     x, y, w, h= box
                     ht_of_object_on_sensor = h * pixel_size  #(mm) 
                     d = (KNOWN_HEIGHT * FOCAL_LENGTH) / ht_of_object_on_sensor
-                    print(f"distance from camera live : {d}")
+                    # print(f"distance from camera live : {d}")
 
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                     centroid_dict[objectId] = (int(x), int(y), xmin, ymin, xmax, ymax,centerCoord,d)
@@ -295,8 +295,8 @@ def app_object_detection(kpi1_text,kpi2_text,kpi3_text):
                 dx, dy = p1[1] - p2[0], p1[1] - p2[0]   	
                 distance = is_close(dx, dy)
                 disChecker =  socialDistancinator(actual_w,p1[7],p2[7]) 
-                print(f"distance between object live : {disChecker}")
-                print(f"ref : {refChecker}")	
+                # print(f"distance between object live : {disChecker}")
+                # print(f"ref : {refChecker}")	
                 if disChecker < refChecker:						
                     if id1 not in red_zone_list:
                         red_zone_list.append(id1)       
