@@ -5,14 +5,14 @@ from playsound import playsound
 class Sound():
 
     def __init__(self):
-        audio_file = open('asset/alarm_one.wav', 'rb')
+        audio_file = open('asset/alarm.wav', 'rb')
         self.audio_bytes = audio_file.read()
 
     def alarm(self):
         st.audio(self.audio_bytes, format="audio/wav")
 
 def play_alarm():
-    playsound('asset/alarm_one.wav', False)
+    playsound('asset/alarm.wav', False)
 
 
 class TimeForSoundChecker:
